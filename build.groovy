@@ -1,6 +1,6 @@
 pipeline {
-agent any
-options {
+  agent any
+  options {
     buildDiscarder(logRotator(numToKeepStr:'2' , artifactNumToKeepStr: '2'))
     timestamps()
     }
@@ -32,12 +32,12 @@ options {
         ansiColor('xterm') {
           sh '''
             jf rt u build/jar/*.jar ant/
-            jf scan build/jar/*.jar --fail-no-op --build-name=gradle --build-number=$BUILD_NUMBER
+            jf scan build/jar/*.jar --fail-no-op --build-name=ant --build-number=$BUILD_NUMBER
           '''
         }
       }
     }
-  }//end stages
+  }
   post {
     success {
       archiveArtifacts artifacts: "build/jar/*.jar"
