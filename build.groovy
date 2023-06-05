@@ -1,3 +1,6 @@
+#!/usr/bin/env groovy
+@Library('shared-library') _
+
 pipeline {
   agent any
   options {
@@ -5,42 +8,29 @@ pipeline {
     timestamps()
     }
   stages {
-    stage('SCM') {
+    stage('CheckOut') {
       steps {
-        cleanWs()
         echo 'Checking out project from Bitbucket....'
-        git branch: 'main', url: 'git@github.com:vamsi8977/ant_sample.git'
+        cleanWs()
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: 'main']],
+          userRemoteConfigs: [[url: 'git@github.com:vamsi8977/ant_sample.git']]
+        ])
       }
     }
     stage('Build') {
       steps {
-        ansiColor('xterm') {
-          echo 'Ant Build....'
-          sh "ant -buildfile build.xml"
-        }
-      }
-    }
-    stage('SonarQube') {
-      steps {
-        withSonarQubeEnv('SonarQube') {
-          sh "sonar-scanner"
-        }
-      }
-    }
-    stage('JFrog') {
-      steps {
-        ansiColor('xterm') {
-          sh '''
-            jf rt u build/jar/*.jar ant/
-            jf scan build/jar/*.jar --fail-no-op --build-name=ant --build-number=$BUILD_NUMBER
-          '''
+        script {
+          withSonarQubeEnv('SonarQube') {
+            ant()
+          }
         }
       }
     }
   }
   post {
     success {
-      archiveArtifacts artifacts: "build/jar/*.jar"
       echo "The build passed."
     }
     failure {
