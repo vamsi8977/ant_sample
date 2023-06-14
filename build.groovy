@@ -28,6 +28,24 @@ pipeline {
         }
       }
     }
+    stage('OWASP') {
+      steps {
+        script {
+          def dependencyCheckArgs = [
+            '-o', './',
+            '-s', './',
+            '-f', 'ALL',
+            '--prettyPrint',
+            '-d', './'
+          ].join(' ')
+          def dependencyCheckInstallation = tool 'OWASP Dependency-Check'
+          withEnv(["PATH+OWASPDependencyCheck=${dependencyCheckInstallation}/bin"]) {
+            sh "dependency-check.sh ${dependencyCheckArgs}"
+          }
+          dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+        }
+      }
+    }
   }
   post {
     success {
